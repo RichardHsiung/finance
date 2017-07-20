@@ -16,7 +16,7 @@ from pandas_datareader import data as web   # Package and modules for importing 
 from matplotlib.dates import DateFormatter, WeekdayLocator, DayLocator, MONDAY
 from matplotlib.finance import candlestick_ohlc
 
-def _getStockData(code, start_time, end_time):
+def _get_stock_data(code, start_time, end_time):
     stock_data = ts.get_hist_data(code, start=start_time, end=end_time)
     stock_data = stock_data.sort_index(0)
     tmplist = []
@@ -125,8 +125,8 @@ def pandas_candlestick_ohlc(dat, stick="day", otherseries=None):
 
     plt.show()
 
-def getMovingAverages(code, start_time, end_time):
-    df = _getStockData(code, start_time, end_time)
+def get_moving_averages(code, start_time, end_time):
+    df = _get_stock_data(code, start_time, end_time)
     df["5d"] = np.round(df["close"].rolling(window = 5, center = False).mean(), 2)
     df["10d"] = np.round(df["close"].rolling(window = 10, center = False).mean(), 2)
     df["20d"] = np.round(df["close"].rolling(window = 20, center = False).mean(), 2)
@@ -138,31 +138,50 @@ def getMovingAverages(code, start_time, end_time):
                             otherseries=['5d','10d','20d','60d','120d','240d'])
     
 
-def getMACD(code, start_time, end_time):
-    stock_data = _getStockData(code, start_time, end_time)
+def get_macd(code, start_time, end_time):
+    stock_data = _get_stock_data(code, start_time, end_time)
     stock_data_length = stock_data.shape[0]
 
     if stock_data_length > 35:
-        stock_data['macd_DIFF_DEA'] = pd.Series()
-        stock_data['macd_DEA_K'] = pd.Series()
-        stock_data['macd_MACD_SELF'] = pd.Series()
-        stock_data['macd_SUM'] = pd.Series()
+        stock_data['macd_diff_dea'] = pd.Series()
+        stock_data['macd_dea_k'] = pd.Series()
+        stock_data['macd_macd_self'] = pd.Series()
+        stock_data['macd_sum'] = pd.Series()
         curdf = pd.DataFrame(stock_data[:stock_data_length])
-        macd, macdsignal, macdhist = ta.MACD(np.array(curdf['close']), fastperiod=12, slowperiod=26, signalperiod=9)
+        macd, macd_signal, macd_hist = ta.MACD(np.array(curdf['close']), 
+                                     fastperiod = 12, slowperiod = 26, signalperiod = 9)
 
-        SignalMA5 = ta.MA(macdsignal, timeperiod=5, matype=0)
-        SignalMA10 = ta.MA(macdsignal, timeperiod=10, matype=0)
-        SignalMA20 = ta.MA(macdsignal, timeperiod=20, matype=0)
+        signal_ma5 = ta.MA(macdsignal, timeperiod = 5, matype = 0)
+        signal_ma10 = ta.MA(macdsignal, timeperiod = 10, matype = 0)
+        signal_ma20 = ta.MA(macdsignal, timeperiod = 20, matype = 0)
 
         # 在后面增加3列，分别是13-15列，对应的是 DIFF  DEA  DIFF-DEA
         macd_index = stock_data.shape[1]
-        curdf['macd'] = pd.Series(macd, index=curdf.index)  # DIFF
+        curdf['macd'] = pd.Series(macd, index = curdf.index)  # DIFF
         macdsignal_index = stock_data.shape[1]
-        curdf['macdsignal'] = pd.Series(macdsignal, index=curdf.index)  # DEA
+        curdf['macd_signal'] = pd.Series(macd_signal, index = curdf.index)  # DEA
         macdhist_index = stock_data.shape[1]
-        curdf['macdhist'] = pd.Series(macdhist, index=curdf.index)  # DIFF-DEA
-        MAlen = len(SignalMA5)
-
+        curdf['macd_hist'] = pd.Series(macd_hist, index = curdf.index)  # DIFF-DEA
+        ma_len = len(signal_ma5)
+        
+        if (stock_data.iat[(stock_data_length - 1), 13] > 0 and 
+           stock_data.iat[(stock_data_length - 1), 14] > 0 and
+           stock_data.iat[(stock_data_length - 1), 13] > stock_data.iat[( stock_data_length - 1), 14]):
+            operate = operate + 1 #买入
+        elif (stock_data.iat[(stock_data_length - 1), 14] < 0 and
+             stock_data.iat[(stock_data_length - 1), 13] < 0 and
+             stock_data.iat[(stock_data_length - 1), 13] < stock_data.iat[(stock_data_length - 1), 14]):
+            operate = operate - 1 #卖出
+        
+        if (stock_data.iat[(stock_data_length - 1), 7] >= stock_data.iat[(stock_data_length - 1), 8] and 
+           stock_data.iat[(stock_data_length - 1), 8] >= stock_data.iat[(stock_data_length - 1), 9] and #k线上涨 
+           signal_ma5[ma_len - 1] <= signal_ma10[ma_len - 1] and signal_ma10[ma_len - 1] <= signal_ma20[ma_len-1]): #DEA下降
+            operate = operate - 1
+        elif (stock_data.iat[(stock_data_length - 1), 7] <= stock_data.iat[(stock_data_length - 1), 8] and
+             stock_data.iat[(stock_data_length - 1), 8] <= stock_data.iat[(stock_data_length - 1), 9] and #k线下降
+             signal_ma5[ma_len - 1] >= signal_ma10[ma_len - 1] and signal_ma10[ma_len - 1] >= signal_ma20[ma_len - 1]): #DEA上涨
+             operate = operate + 1
+            
 
 if __name__ == "__main__":
     start_time="2015-07-01"
@@ -170,5 +189,5 @@ if __name__ == "__main__":
     code = sys.argv[1]
     mask = "000000"
     code = mask[len(code) - 1: -1] + code
-    #getMACD(code, start_time, end_time)
-    getMovingAverages(code, start_time, end_time)
+    get_macd(code, start_time, end_time)
+    #getMovingAverages(code, start_time, end_time)
