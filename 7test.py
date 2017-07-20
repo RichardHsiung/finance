@@ -159,62 +159,6 @@ def check_stock_data(code, name, df):
     df.to_csv('./output/macd/' + code + '.csv')
     return (success_count,failed_count)
 
-def checkStockInThread((index,row)):
-#    print index
-#    print row
-    code = index
-    name = row['name']
-    code_str = str(code).zfill(6)
-    print(code_str, '=', name)
-    success_count = 0
-    failed_count = 0
-    try:
-        success_count,failed_count = calcMACD(code_str)
-    except Exception, e:
-        print code_str, '=', name
-        print e
-        logException()
-
-    return (index,code_str,name,success_count,failed_count)
-
-def checkAll():
-    output_dir = getMacdDir()
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-    all_stock = getAllStock()
-    all_stock['macd_success'] = pd.Series()
-    all_stock['macd_fail'] = pd.Series()
-
-    pool = Pool(THREAD_POOL_SIZE)
-    results = pool.map(checkStockInThread, all_stock.iterrows())
-    pool.close()
-    pool.join()
-    
-    for index,code_str,name,success_count,failed_count in results:
-#        print index, success_count, failed_count
-        all_stock.loc[index, 'macd_success'] = success_count
-        all_stock.loc[index, 'macd_fail'] = failed_count
-        if success_count != 0:
-            all_stock.loc[index, 'macd_success_percent'] = float(success_count)/(success_count+failed_count) * 100
-        if (success_count > 3) and (failed_count == 0):
-            print code_str, name, '  success_count=', success_count,'  failed_count=', failed_count
-        
-
-
-#    for index,row in all_stock.iterrows():
-#        code = index
-#        name = row['name']
-#        code_str = str(code).zfill(6)
-#        print code_str, '=', name.encode('gbk')
-#        success_count,failed_count = calcMACD(code_str)
-#        all_stock.loc[index, 'macd_success'] = success_count
-#        all_stock.loc[index, 'macd_fail'] = failed_count
-#        if (success_count > failed_count) and (success_count > 5) and (failed_count == 0):
-#            print code_str, name, '  success_count=', success_count,'  failed_count=', failed_count
-
-    all_stock.to_csv(getMacdPath('summy_all'))
-    all_stock = all_stock[all_stock.macd_success >= 5][all_stock.macd_success_percent >= 80].sort_values('macd_success', 0, False)
-    all_stock.to_csv(getMacdPath('summy_DEA_K'))
 
 def check_stock_now(code, name):
     operate = 0
@@ -351,7 +295,7 @@ def checknow():
 #        code = index
 #        name = row['name']
 #        code_str = str(code).zfill(6)
-##        print code_str, '=', name
+#        print code_str, '=', name
 #        operate = check_stock_now(code_str, name)
 #        all_stock.loc[index, 'operate'] = operate
 #        if operate != 0:
@@ -365,19 +309,7 @@ def checknow():
     macddata = all_stock[all_stock.last_operate != 0].sort_values('macd_success', 0, False)
     macddata.to_csv('./output/macd/day/' + datetime.date.today().strftime('%Y-%m-%d') + '.csv')
 
-def checkSome():
-    codes = [
-            300218
-    ]
-    for code in codes:
-        code_str = str(code).zfill(6)
-        print code_str
-        check_stock(code_str, 'test')
 
 if __name__ == '__main__':    
     checknow()
-#    checkAll()
-#    checkSome()
-#    check_stock('000001', 'test')
-#    print check_stock_now('002510','test')
     print 'finish'
