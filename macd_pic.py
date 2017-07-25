@@ -14,10 +14,8 @@ def _get_stock_data(code, start_time, end_time):
 
     stock_data = ts.get_hist_data(code, start=start_time, end=end_time)
     stock_data = stock_data.sort_index(0)
-    tmplist = []
-    for onetime in stock_data.index:
-        tmplist.append(datetime.datetime.strptime(onetime, '%Y-%m-%d'))
-    stock_data.index = tmplist
+    stock_data.index = pd.to_datetime(stock_data.index)
+
     return stock_data
 
 
