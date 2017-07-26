@@ -13,35 +13,52 @@ from matplotlib.finance import candlestick_ohlc
 def _get_stock_data(code, start_time, end_time, autype):
 
     stock_data = ts.get_k_data(code, start=start_time, end=end_time, autype=autype)
+    stock_data.index = pd.to_datetime(stock_data.date)
     return stock_data
 
 
 def macd_check(code, start_time, end_time, autype, short_day, long_day):
     sd = 0.05  #width of the region
-    macd_all = _get_stock_data(code, start_time, end_time, autype)
+    stock_data = _get_stock_data(code, start_time, end_time, autype)
 
-    macd_all["short"] = np.round(macd_all["close"].rolling(window = int(short_day), center = False).mean(), 2)
-    macd_all["long"] = np.round(macd_all["close"].rolling(window = int(long_day), center = False).mean(), 2)
+    
+    stock_data["short"] = np.round(stock_data["close"].rolling(window = int(short_day), center = False).mean(), 2)
+    stock_data["long"] = np.round(stock_data["close"].rolling(window = int(long_day), center = False).mean(), 2)
 
     # s-l > long * sd  buy the stock
-    macd_all["s-l"] = macd_all["short"] - macd_all["long"]
-    macd_all['Regime'] = np.where(macd_all['s-l'] > macd_all["long"] * sd, 1, 0)
-    print(macd_all['Regime'].value_counts())
+    stock_data["s-l"] = stock_data["short"] - stock_data["long"]
+    stock_data['flag'] = np.where(stock_data['s-l'] > stock_data["long"] * sd, 1, 0)
 
-    macd_all['Market'] = np.log(macd_all['close'] / macd_all['close'].shift(1))
-    macd_all['Strategy'] = macd_all['Regime'].shift(1) * macd_all['Market']
-    print(macd_all[['Market', 'Strategy', 'Regime']].tail())
+    stock_data['Market'] = np.log(stock_data['close'] / stock_data['close'].shift(1))
+    stock_data['Strategy'] = stock_data['flag'].shift(1) * stock_data['Market']
 
-    plt.rcParams['figure.figsize'] = (10, 6)  # Change the size of plots
-    macd_all[['Market', 'Strategy']].cumsum().apply(np.exp).plot(grid=True)
-    plt.show()
+    #plt.rcParams['figure.figsize'] = (10, 6)  # Change the size of plots
+    #stock_data[['Market', 'Strategy']].cumsum().apply(np.exp).plot(grid=True)
+    #plt.show()
+    stock_data['Market'] = stock_data[['Market']].cumsum().apply(np.exp)
+    stock_data['Strategy'] = stock_data[['Strategy']].cumsum().apply(np.exp)
+    stock_data['sum_ret'] = stock_data['Strategy'] - stock_data['Market']
+
+    count = 0
+    for item in stock_data['sum_ret']:
+        if item > 0.2:
+            count += 1
+    if count/len(stock_data['sum_ret']) > 0.99:
+        print("good:%s" % code)
+
 
 if __name__ == "__main__":
+
+    df = pd.read_csv('./stock_list.csv')
+
     start_time="2008-01-01"
-    #end_time=datetime.datetime.now().strftime('%Y-%m-%d')
-    end_time = "2015-04-23"
-    autype = None  #默认不复权
-    code = sys.argv[1]
-    mask = "000000"
-    code = mask[len(code) - 1: -1] + code
-    macd_check(code, start_time, end_time, autype, 20, 120)
+    end_time=datetime.datetime.now().strftime('%Y-%m-%d')
+    #end_time = "2015-04-23"
+    #autype = None  #默认不复权
+    autype = 'qfq'  #默认不复权
+    #code = sys.argv[1]
+    #mask = "000000"
+    #code = mask[len(code) - 1: -1] + code
+    for code in df['code']:
+        code = str(code)
+        macd_check(code, start_time, end_time, autype, 5, 60)

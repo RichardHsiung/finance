@@ -133,7 +133,7 @@ def get_moving_averages(code, start_time, end_time, autype):
 
 
 if __name__ == "__main__":
-    start_time="2008-07-01"
+    start_time="2015-07-01"
     end_time=datetime.datetime.now().strftime('%Y-%m-%d')
     autype = None
     code = sys.argv[1]
