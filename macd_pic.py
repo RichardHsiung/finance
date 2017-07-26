@@ -10,12 +10,10 @@ from matplotlib.pylab import date2num
 from matplotlib.dates import DateFormatter, WeekdayLocator, DayLocator, MONDAY
 from matplotlib.finance import candlestick_ohlc
 
-def _get_stock_data(code, start_time, end_time):
+def _get_stock_data(code, start_time, end_time, autype):
 
-    stock_data = ts.get_hist_data(code, start=start_time, end=end_time)
-    stock_data = stock_data.sort_index(0)
-    stock_data.index = pd.to_datetime(stock_data.index)
-
+    stock_data = ts.get_k_data(code, start=start_time, end=end_time, autype=autype)
+    stock_data.index = pd.to_datetime(stock_data.date)
     return stock_data
 
 
@@ -122,8 +120,8 @@ def pandas_candlestick_ohlc(dat, stick="day", otherseries=None):
 
     plt.show()
 
-def get_moving_averages(code, start_time, end_time):
-    df = _get_stock_data(code, start_time, end_time)
+def get_moving_averages(code, start_time, end_time, autype):
+    df = _get_stock_data(code, start_time, end_time, autype)
     df["5d"] = np.round(df["close"].rolling(window = 5, center = False).mean(), 2)
     df["10d"] = np.round(df["close"].rolling(window = 10, center = False).mean(), 2)
     df["20d"] = np.round(df["close"].rolling(window = 20, center = False).mean(), 2)
@@ -135,9 +133,10 @@ def get_moving_averages(code, start_time, end_time):
 
 
 if __name__ == "__main__":
-    start_time="2015-07-01"
+    start_time="2008-07-01"
     end_time=datetime.datetime.now().strftime('%Y-%m-%d')
+    autype = None
     code = sys.argv[1]
     mask = "000000"
     code = mask[len(code) - 1: -1] + code
-    get_moving_averages(code, start_time, end_time)
+    get_moving_averages(code, start_time, end_time, autype)

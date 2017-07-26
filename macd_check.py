@@ -12,16 +12,17 @@ from matplotlib.finance import candlestick_ohlc
 
 def _get_stock_data(code, start_time, end_time):
 
-    stock_data = ts.get_hist_data(code, start=start_time, end=end_time)
-    stock_data = stock_data.sort_index(0)
-    stock_data.index = pd.to_datetime(stock_data.index)
-
+    stock_data = ts.get_k_data(code, start=start_time, end=end_time, autype=None)
+    #stock_data = stock_data.sort_index(0)
+    #stock_data.index = pd.to_datetime(stock_data.index)
+    print(stock_data)
     return stock_data
 
 
 def macd_check(code, start_time, end_time, short, long):
     sd = 0.05  #width of the region
     macd_all = _get_stock_data(code, start_time, end_time)
+
     macd_all["short"] = np.round(macd_all["close"].rolling(window = int(short), center = False).mean(), 2)
     macd_all["long"] = np.round(macd_all["close"].rolling(window = int(long), center = False).mean(), 2)
 
@@ -40,7 +41,7 @@ def macd_check(code, start_time, end_time, short, long):
 if __name__ == "__main__":
     start_time="2008-01-01"
     #end_time=datetime.datetime.now().strftime('%Y-%m-%d')
-    end_time = "2015-12-31"
+    end_time = "2015-04-23"
     code = sys.argv[1]
     mask = "000000"
     code = mask[len(code) - 1: -1] + code
