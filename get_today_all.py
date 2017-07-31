@@ -7,6 +7,8 @@ import pandas as pd
 #df.to_csv('stock_list.csv')
 
 df = pd.read_csv('./stock_list.csv')
-print(df['code'])
+for one in df['code']:
+    if one < 603416:
+        print(one)
 
 
