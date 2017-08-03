@@ -44,9 +44,9 @@ def macd_check(code, start_time, end_time, autype, short_day, long_day):
 
     count = 0
     for item in stock_data['sum_ret']:
-        if item > 0.1:
+        if item > 0.15:
             count += 1
-    if count/len(stock_data['sum_ret']) > 0.99:
+    if count/len(stock_data['sum_ret']) > 0.95:
         print("good:%s" % code)
 
 

@@ -1,13 +1,15 @@
 
 import time
 import sys
+from config import TOKEN
 from uqer import Client
 
 
 if __name__ == '__main__':
     username = '18511860769'
     password = 'hsiung@2015',
-    token = '8EB19E2D2C668E72A2669E2D80572017'
+    #token = '8EB19E2D2C668E72A2669E2D80572017'
+    token = TOKEN
     client = Client(username, password, token)
 
     if len(sys.argv[1]) < 1:
