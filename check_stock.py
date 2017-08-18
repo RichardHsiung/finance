@@ -23,9 +23,8 @@ def _get_stock_data(code, start_time, end_time):
     return stock_data
 
 
-def check_stock_data(code, start_time, end_time):
+def check_stock_data(code, start_time, end_time, operate_count):
 
-    print("check_stock_data")
     success_count = 0
     failed_count = 0
     
@@ -105,8 +104,8 @@ def check_stock_data(code, start_time, end_time):
                         break
                     
             stock_data['macd_sum'][stock_data_length - 1] = operate
-            print(operate)
-    stock_data.to_csv('./output/' + code + '.csv')
+            if operate > operate_count:
+                print(code_str)
 
 
 if __name__ == "__main__":
@@ -118,5 +117,5 @@ if __name__ == "__main__":
     for index in all_stock:
         code = index
         code_str = str(code).zfill(6)
-        check_stock_data(code_str, start_time, end_time)
+        check_stock_data(code_str, start_time, end_time, 2)
 
