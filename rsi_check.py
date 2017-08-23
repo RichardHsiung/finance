@@ -19,7 +19,7 @@ def _get_stock_data(code, start_time, end_time, autype):
     return stock_data
 
 
-def macd_check(code, start_time, end_time, autype, short_day, long_day, rate, average_rate):
+def macd_check(code, start_time, end_time, autype, short_day, long_day):
     sd = 0.05  #width of the region
     stock_data = _get_stock_data(code, start_time, end_time, autype)
     if type(stock_data.empty) == "NoneType" or stock_data.empty:
@@ -35,25 +35,26 @@ def macd_check(code, start_time, end_time, autype, short_day, long_day, rate, av
     stock_data['Market'] = np.log(stock_data['close'] / stock_data['close'].shift(1))
     stock_data['Strategy'] = stock_data['flag'].shift(1) * stock_data['Market']
 
+    #plt.rcParams['figure.figsize'] = (10, 6)  # Change the size of plots
+    #stock_data[['Market', 'Strategy']].cumsum().apply(np.exp).plot(grid=True)
+    #plt.show()
     stock_data['Market'] = stock_data[['Market']].cumsum().apply(np.exp)
     stock_data['Strategy'] = stock_data[['Strategy']].cumsum().apply(np.exp)
     stock_data['sum_ret'] = stock_data['Strategy'] - stock_data['Market']
 
     count = 0
     for item in stock_data['sum_ret']:
-        if item > rate:
+        if item > 0.15:
             count += 1
-    if count/len(stock_data['sum_ret']) > average_rate:
-        return True
-    else:
-        return False
+    if count/len(stock_data['sum_ret']) > 0.99:
+        print("good:%s" % code)
 
 
 if __name__ == "__main__":
 
     df = pd.read_csv('./stock_list.csv')
 
-    start_time="2015-01-01"
+    start_time="2016-01-01"
     end_time=datetime.datetime.now().strftime('%Y-%m-%d')
     #end_time = "2015-04-23"
     #autype = None  #默认不复权
@@ -61,9 +62,6 @@ if __name__ == "__main__":
     #code = sys.argv[1]
     #mask = "000000"
     #code = mask[len(code) - 1: -1] + code
-    good_codes = []
     for code in df['code']:
         code = str(code)
-        if macd_check(code, start_time, end_time, autype, 5, 60, 0.12, 0.98):
-            good_codes.append(code)
-    print(sorted(good_codes))
+        macd_check(code, start_time, end_time, autype, 5, 60)
