@@ -12,15 +12,13 @@ from multiprocessing import Pool
 from matplotlib.dates import DateFormatter, WeekdayLocator, DayLocator, MONDAY
 from matplotlib.finance import candlestick_ohlc
 
-def _get_hist_data(code, start_time, end_time, autype):
-    
-    stock_data = ts.get_hist_data(code, start=start_time, end=end_time)
-    stock_data = stock_data.sort_index(0)
-    tmplist = []
-    for onetime in stock_data.index:
-        tmplist.append(datetime.datetime.strptime(onetime, '%Y-%m-%d'))
-    stock_data.index = tmplist
-    return stock_data
+
+def _get_k_data(code, start_time, end_time, autype):
+
+    stock_data = ts.get_k_data(code, start=start_time, end=end_time, autype=autype)
+    if type(stock_data) == "DataFrame" and not stock_data.empty:
+        stock_data.index = pd.to_datetime(stock_data.date)
+    return stock_data.loc[:, ('open', 'close', 'high', 'low')]
 
 
 def check_stock_data(code, start_time, end_time, autype, operate_count):
@@ -52,6 +50,7 @@ def check_stock_data(code, start_time, end_time, autype, operate_count):
         signal_ma5 = ta.MA(macd_signal, timeperiod = 5, matype = 0)
         signal_ma10 = ta.MA(macd_signal, timeperiod = 10, matype = 0)
         signal_ma20 = ta.MA(macd_signal, timeperiod = 20, matype = 0)
+        signal_ma60 = ta.MA(macd_signal, timeperiod = 60, matype = 0)
 
         for stock_data_length in range(36, stock_data.shape[0] + 1):
             curdf = pd.DataFrame(stock_data[:stock_data_length])
@@ -77,12 +76,12 @@ def check_stock_data(code, start_time, end_time, autype, operate_count):
             # 3.DEA线与K线发生背离，行情反转信号。
             if (curdf.iat[(stock_data_length - 1), 7] >= curdf.iat[(stock_data_length - 1), 8] and
                         curdf.iat[(stock_data_length-1), 8] >= curdf.iat[(stock_data_length-1),9]):#K线上涨
-                if signal_ma5[ma_len - 1] <= signal_ma10[ma_len - 1] <= signal_ma20[ma_len - 1]: #DEA下降
+                if signal_ma5[ma_len - 1] <= signal_ma10[ma_len - 1] <= signal_ma20[ma_len - 1] <= signal_ma60[ma_len - 1]: #DEA下降
                     operate += - 1
                     stock_data['macd_dea_k'][stock_data_length - 1] = 1
             elif (curdf.iat[(stock_data_length - 1), 7] <= curdf.iat[(stock_data_length - 1), 8] and
                           curdf.iat[(stock_data_length-1), 8] <= curdf.iat[(stock_data_length - 1), 9]):#K线下降
-                if signal_ma5[ma_len - 1] >= signal_ma10[ma_len - 1] >= signal_ma20[ma_len - 1]: #DEA上涨
+                if signal_ma5[ma_len - 1] >= signal_ma10[ma_len - 1] >= signal_ma20[ma_len - 1] >= signal_ma60[ma_len - 1]: #DEA上涨
                     operate += 1
                     stock_data['macd_dea_k'][stock_data_length - 1] = -1
                        
@@ -127,14 +126,6 @@ def operate_count():
     return operate_ret
 
 
-def _get_k_data(code, start_time, end_time, autype):
-
-    stock_data = ts.get_k_data(code, start=start_time, end=end_time, autype=autype)
-    if type(stock_data) == "DataFrame" and not stock_data.empty:
-        stock_data.index = pd.to_datetime(stock_data.date)
-    return stock_data.loc[:, ('open', 'close', 'high', 'low')]
-
-
 def _macd_check(code, start_time, end_time, autype, short_day, long_day, rate, average_rate):
     sd = 0.05  #width of the region
     stock_data = _get_k_data(code, start_time, end_time, autype)
@@ -171,13 +162,11 @@ def macd_check():
     start_time="2015-07-01"
     end_time=datetime.datetime.now().strftime('%Y-%m-%d')
     operate_ret = operate_count()
-    #operate_ret = ['603886', '603843', '603508', '603330', '603239', '603180', '603011', '600183', '300508', '300227', '300124', '300067', '300039', '002809', '002788', '002519', '002502', '002440', '002426', '002174', '000760', '000707']
     good_codes = []
     for code in operate_ret:
-        if _macd_check(code, start_time, end_time, autype, 5, 60, 0.12, 0.95):
+        if _macd_check(code, start_time, end_time, autype, 5, 60, 0.1, 0.95):
             good_codes.append(code)
     print(sorted(good_codes))
-
 
 
 if __name__ == "__main__":
