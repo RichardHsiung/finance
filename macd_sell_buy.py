@@ -28,7 +28,7 @@ def check_stock_data(code, start_time, end_time, autype, operate_count):
     success_count = 0
     failed_count = 0
     
-    stock_data = _get_hist_data(code, start_time, end_time, autype)
+    stock_data = _get_k_data(code, start_time, end_time, autype)
     stock_data_length = stock_data.shape[0]
 
     if stock_data_length > 35:
@@ -132,7 +132,7 @@ def _get_k_data(code, start_time, end_time, autype):
     stock_data = ts.get_k_data(code, start=start_time, end=end_time, autype=autype)
     if type(stock_data) == "DataFrame" and not stock_data.empty:
         stock_data.index = pd.to_datetime(stock_data.date)
-    return stock_data
+    return stock_data.loc[:, ('open', 'close', 'high', 'low')]
 
 
 def _macd_check(code, start_time, end_time, autype, short_day, long_day, rate, average_rate):
@@ -174,7 +174,7 @@ def macd_check():
     #operate_ret = ['603886', '603843', '603508', '603330', '603239', '603180', '603011', '600183', '300508', '300227', '300124', '300067', '300039', '002809', '002788', '002519', '002502', '002440', '002426', '002174', '000760', '000707']
     good_codes = []
     for code in operate_ret:
-        if _macd_check(code, start_time, end_time, autype, 5, 60, 0.15, 0.95):
+        if _macd_check(code, start_time, end_time, autype, 5, 60, 0.12, 0.95):
             good_codes.append(code)
     print(sorted(good_codes))
 

@@ -12,23 +12,22 @@ from multiprocessing import Pool
 from matplotlib.dates import DateFormatter, WeekdayLocator, DayLocator, MONDAY
 from matplotlib.finance import candlestick_ohlc
 
-def _get_stock_data(code, start_time, end_time):
+def _get_stock_data(code, start_time, end_time, autype):
 
-    stock_data = ts.get_hist_data(code, start=start_time, end=end_time)
-    stock_data = stock_data.sort_index(0)
-    tmplist = []
-    for onetime in stock_data.index:
-        tmplist.append(datetime.datetime.strptime(onetime, '%Y-%m-%d'))
-    stock_data.index = tmplist
-    return stock_data
+    stock_data = ts.get_k_data(code, start=start_time, end=end_time, autype=autype)
+    stock_data.index = pd.to_datetime(stock_data.date)
+
+    return stock_data.loc[:, ('open', 'close', 'high', 'low')]
 
 
-def check_stock_data(code, start_time, end_time, operate_count):
+def check_stock_data(code, start_time, end_time, operate_count, autype):
 
     success_count = 0
     failed_count = 0
     
-    stock_data = _get_stock_data(code, start_time, end_time)
+    stock_data = _get_stock_data(code, start_time, end_time, autype)
+    print(stock_data)
+
     stock_data_length = stock_data.shape[0]
 
     if stock_data_length > 35:
@@ -113,9 +112,7 @@ if __name__ == "__main__":
     end_time=datetime.datetime.now().strftime('%Y-%m-%d')
     all_stock = pd.read_csv('./stock_list.csv')
     all_stock = all_stock['code']
+    autype = "qfq"
 
-    for index in all_stock:
-        code = index
-        code_str = str(code).zfill(6)
-        check_stock_data(code_str, start_time, end_time, 2)
+    check_stock_data('601155', start_time, end_time, 2, autype)
 
