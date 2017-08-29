@@ -166,7 +166,8 @@ def macd_check():
     for code in operate_ret:
         if _macd_check(code, start_time, end_time, autype, 5, 60, 0.1, 0.95):
             good_codes.append(code)
-    print(sorted(good_codes))
+    with open('result.txt', 'a') as f:
+        f.write(str(datetime.datetime.now()) + str(sorted(good_codes)) + '\n')
 
 
 if __name__ == "__main__":
