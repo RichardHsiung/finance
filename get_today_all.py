@@ -3,12 +3,16 @@ import tushare as ts
 import pandas as pd
 
 #all_data = ts.get_today_all()
-#df = pd.DataFrame(all_data)
-#df.to_csv('stock_list.csv')
-
-df = pd.read_csv('./stock_list.csv')
-for one in df['code']:
-    if one < 603416:
-        print(one)
+#df_data = pd.DataFrame(all_data)
 
 
+df_data = pd.read_csv('./stock_list.csv')
+stock_data_length = df_data.shape[0]
+
+for i in  range(stock_data_length):
+    code = df_data.iloc[i].code
+    code_path = './stock_price/' + code + '.csv'
+    if os.path.exist(code_path):
+        df = pd.read_csv(code_path)
+        df.loc[df.shape[0] + 1] = {}
+        pd.to_csv(code_path)

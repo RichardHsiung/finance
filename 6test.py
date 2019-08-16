@@ -273,7 +273,7 @@ def getDiff5_20Day(code, start_time, end_time):
     plt.show()
    
 def getSingal(code, start_time, end_time):
-    df = ts.get_hist_data(code, start=start_time, end=end_time
+    df = ts.get_hist_data(code, start=start_time, end=end_time)
     df = df.sort_index(0)
     df["5d"] = np.round(df["close"].rolling(window = 5, center = False).mean(), 2)
     df["20d"] = np.round(df["close"].rolling(window = 20, center = False).mean(), 2)

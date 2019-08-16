@@ -26,7 +26,6 @@ def check_stock_data(code, start_time, end_time, operate_count, autype):
     failed_count = 0
     
     stock_data = _get_stock_data(code, start_time, end_time, autype)
-    print(stock_data)
 
     stock_data_length = stock_data.shape[0]
 
@@ -103,8 +102,10 @@ def check_stock_data(code, start_time, end_time, operate_count, autype):
                         break
                     
             stock_data['macd_sum'][stock_data_length - 1] = operate
-            if operate > operate_count:
-                print(code_str)
+        if stock_data['macd_sum'][stock_data_length - 1] >= operate_count:
+            return code
+        else:
+            return
 
 
 if __name__ == "__main__":
@@ -114,5 +115,13 @@ if __name__ == "__main__":
     all_stock = all_stock['code']
     autype = "qfq"
 
-    check_stock_data('601155', start_time, end_time, 2, autype)
+    operate_list = []
+    calculate_rate = 0
+    for code in all_stock:
+        if calculate_rate % 5 == 0:
+            sys.stdout.write('#')
+            sys.stdout.flush()
+        operate_list.append(check_stock_data(str(code), start_time, end_time, 2, autype))
+        calculate_rate += 1
+    print(operate_list)
 

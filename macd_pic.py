@@ -122,14 +122,16 @@ def pandas_candlestick_ohlc(dat, stick="day", otherseries=None):
 
 def get_moving_averages(code, start_time, end_time, autype):
     df = _get_stock_data(code, start_time, end_time, autype)
-    df["5d"] = np.round(df["close"].rolling(window = 5, center = False).mean(), 2)
-    df["10d"] = np.round(df["close"].rolling(window = 10, center = False).mean(), 2)
-    df["20d"] = np.round(df["close"].rolling(window = 20, center = False).mean(), 2)
-    df["60d"] = np.round(df["close"].rolling(window = 60, center = False).mean(), 2)
-    df["120d"] = np.round(df["close"].rolling(window = 120, center = False).mean(), 2)
+    print(df)
+    df["5d"] = np.round(df["close"].rolling(window=5, center=False).mean(), 2)
+    df["10d"] = np.round(df["close"].rolling(window=10, center=False).mean(), 2)
+    df["20d"] = np.round(df["close"].rolling(window=20, center=False).mean(), 2)
+    df["40d"] = np.round(df["close"].rolling(window=40, center=False).mean(), 2)
+    df["60d"] = np.round(df["close"].rolling(window=60, center=False).mean(), 2)
+    #df["120d"] = np.round(df["close"].rolling(window=120, center=False).mean(), 2)
 
     pandas_candlestick_ohlc(df.loc[start_time:end_time,:],
-                            otherseries=['5d','10d','20d','60d','120d'])
+                            otherseries=['5d', '10d', '20d', '40d', '60d'])
 
 
 if __name__ == "__main__":

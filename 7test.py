@@ -168,7 +168,7 @@ def check_stock_now(code, name):
         df = ts.get_hist_data(code, start=begin_time_check_now)
         if df is not None:
             break
-        print 'retry ', i, code, name
+        print('retry ', i, code, name)
     if df is None:
         return (0,0)
 
@@ -255,7 +255,7 @@ def check_stock_now(code, name):
 
     return (operate,last_operate)
 
-def checkStockNowInThread((index,row)):
+def checkStockNowInThread(index, row):
 #    print index
 #    print row
     code = index
@@ -287,8 +287,8 @@ def checknow():
             all_stock.loc[index, 'macd_success'] = success_count
             all_stock.loc[index, 'macd_fail'] = failed_count
             if (success_count > 3) and (failed_count == 0):
-                print code_str, name, '  operate=', operate,'  last_operate=', last_operate,
-                print '  success_count=', success_count,'  failed_count=', failed_count
+                print(code_str, name, '  operate=', operate,'  last_operate=', last_operate),
+                print('  success_count=', success_count,'  failed_count=', failed_count)
 
 
 #    for index,row in all_stock.iterrows():
@@ -312,4 +312,4 @@ def checknow():
 
 if __name__ == '__main__':    
     checknow()
-    print 'finish'
+    print('finish')
